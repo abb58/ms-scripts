@@ -1,0 +1,47 @@
+# ARCH file for CP2K 2.7.x (POPT - pure MPI parallel) for SDSC Gordon
+# preloaded modules:
+# intel/2013_sp1.2.144
+# openmpi_ib/1.6.5
+#
+# Self compiled modules:
+# libint/1.1.4-intel15
+# fftw/3.3.4 (Compiled in HOME directory) 
+
+# === compiler and programs ===
+CC        = icc
+CPP       =
+FC        = mpif90
+LD        = mpif90
+AR        = ar -r
+
+# === libs and includes ===
+FFTW_ROOT   = /home/abb58/pkg/install/fftw-3.3.4
+LIBINT_ROOT = /home/abb58/pkg/install/libint-1.1.4
+
+LIBS      = $(MKL_ROOT)/lib/intel64/libmkl_scalapack_lp64.a \
+            -Wl,--start-group \
+              $(MKL_ROOT)/lib/intel64/libmkl_intel_lp64.a \
+              $(MKL_ROOT)/lib/intel64/libmkl_core.a \
+              $(MKL_ROOT)/lib/intel64/libmkl_sequential.a \
+            -Wl,--end-group \
+            $(MKL_ROOT)/lib/intel64/libmkl_blacs_openmpi_lp64.a \
+            -lpthread -lm
+
+LIBS      += -L$(FFTW_ROOT)/lib/libfftw3.a
+
+LIBS      += -L$(LIBINT_ROOT)/lib \
+	       -lderiv \
+               -lint \
+               -lstdc++
+
+INCS      = -I$(FFTW_ROOT)/include
+INCS     += -I$(LIBINT_ROOT)/include
+
+# === pre-processor flags ===
+DFLAGS    = -D__parallel -D__SCALAPACK -D__FFTW3 -D__LIBINT -D__HAS_NO_MPI_MOD
+
+# === program flags ===
+CPPFLAGS  =
+CFLAGS    = $(DFLAGS) $(INCS) -O3 -xHost
+FCFLAGS   = $(DFLAGS) $(INCS) -O3 -xHost -heap-arrays 64 -funroll-loops -fpp -free
+LDFLAGS   = $(FCFLAGS) -static-intel $(LIBS)

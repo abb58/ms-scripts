@@ -1,0 +1,101 @@
+@SET CHARGE     1                       # charge on the system
+@SET CUTOFF     480                     # Usually depends on the system 480 and above is treated good
+@SET RELCUTOFF  60                      # fairly higher than default             
+@SET SCF_CONV   1.0E-8                  # SCF convergence tolerance 
+@SET FUNCTIONAL PBE                     # Functional 
+@SET RUN        GEO_OPT                 # KEY WORD for geometry optimization
+@SET MAX_SCF    1000                    # No of max SCF iterations 
+@SET POS_FILE   PATH_TO_COORD_FILE.xyz  # Your XYZ coordinate file 
+
+&GLOBAL
+  PRINT_LEVEL LOW                       # Controls the level of output
+  PROJECT_NAME NAME                     # Name of the project         
+  RUN_TYPE ${RUN}                       # ALIASED ABOVE
+  &MACHINE_ARCH
+    PRINT_FULL TRUE
+  &END MACHINE_ARCH
+&END GLOBAL
+
+&FORCE_EVAL
+  METHOD QS
+  &DFT
+    BASIS_SET_FILE_NAME /gscratch1/kjohnson/abb58/cp2k-2.6/cp2k/data/BASIS_MOLOPT   # FILES USED BY CP2K
+    POTENTIAL_FILE_NAME /gscratch1/kjohnson/abb58/cp2k-2.6/cp2k/data/GTH_POTENTIALS # FILES USED BY CP2K
+    CHARGE              ${CHARGE}
+    &MGRID
+      NGRIDS     5                       # NUMERICAL INTEGRATION GRID, 5 fairly good value
+      CUTOFF     ${CUTOFF}          
+      REL_CUTOFF ${RELCUTOFF}
+    &END MGRID
+    &QS
+      METHOD      GPW
+      EPS_DEFAULT 1.0E-10
+    &END QS
+    &SCF
+      SCF_GUESS RESTART
+      EPS_SCF ${SCF_CONV}
+      MAX_SCF ${MAX_SCF}
+      &OUTER_SCF
+	MAX_SCF 10
+	EPS_SCF ${SCF_CONV}
+      &END OUTER_SCF
+      &PRINT
+        &RESTART OFF
+          &EACH
+            QS_SCF 50
+          &END
+          ADD_LAST NUMERIC
+        &END
+      &END
+    &END SCF
+    &XC
+      &XC_FUNCTIONAL ${FUNCTIONAL}
+      &END XC_FUNCTIONAL
+    &END XC
+  &END DFT
+
+  &SUBSYS
+    &CELL
+      ABC              a b c            # Lattice parameter length
+      ALPHA_BETA_GAMMA alpha beta gamma # Lattice angles in degrees
+      PERIODIC XYZ                      # Periodic in X, Y, Z direction
+    &END CELL
+    &TOPOLOGY
+      COORD_FILE_NAME ${POS_FILE}       # Path to your .xyz file alaised above
+      COORDINATE XYZ                    # Type of your coordinates
+    &END TOPOLOGY
+    &KIND O  # OXYGEN ATOM
+      BASIS_SET TZVP-MOLOPT-GTH-q6      # These are defined in the CP2K BASIS_SET file 
+      POTENTIAL GTH-PBE-q6              # so choose which one suits your system
+    &END KIND
+    &KIND H  # HYDROGEN ATOM
+    BASIS_SET TZVP-MOLOPT-GTH-q1
+    POTENTIAL GTH-PBE-q1
+    &END KIND
+    &KIND C  # CARBON ATOM
+      BASIS_SET TZVP-MOLOPT-GTH-q4
+      POTENTIAL GTH-PBE-q4
+    &END KIND
+  &END SUBSYS
+&END FORCE_EVAL
+
+&MOTION
+  &GEO_OPT                               # Key controls for GEO_OPT     
+    TYPE MINIMIZATION                     
+    MAX_DR    1.0E-05                    # the following four parameters are important for 
+    MAX_FORCE 1.0E-05                    # geo-opt convergence.
+    RMS_DR    1.0E-05
+    RMS_FORCE 1.0E-05                    # One can uncomment to use the deafaults.
+    MAX_ITER 1000                        # Max no of geo-opt iterations
+    OPTIMIZER BFGS                       # Optimizers available : BFGS, CG
+  &END GEO_OPT
+
+    #specify print information
+    &PRINT  
+    &FORCES
+      &EACH
+        GEO_OPT 10
+      &END EACH
+    &END FORCES
+  &END
+&END MOTION

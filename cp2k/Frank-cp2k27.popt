@@ -1,0 +1,59 @@
+#module purge
+#module load intel/2015.1.133
+#module load openmpi/1.8.4-intel15
+#module load mkl/2015.1.133/icc-st-openmpi
+#module load fftw/3.3.4-intel15
+#module load libint/1.1.4-intel15
+#module load boost/1.57.0-intel15
+#module load libxc/2.0.2-intel15
+# This was designed for Frank for compiling CP2K-2.7
+
+CC       = CC
+CPP      = 
+FC       = mpif90
+LD       = mpif90
+AR       = ar -r
+
+DFLAGS   = -D__MKL -D__INTEL -D__FFTSG -D__parallel -D__BLACS -D__SCALAPACK -D__FFTW3 -D__LIBINT -D__LIBXC2
+
+CPPFLAGS =
+
+#CFLAGS   = $(DFLAGS)
+LIBXC_DIR = /opt/sam/libxc/2.0.2/intel15
+LIBINT_DIR = /opt/sam/libint/1.1.4/intel15
+MKL_DIR = /opt/sam/intel/composer_xe_2015.1.133/mkl
+MKL_LIB = ${MKL_ROOT}/lib/intel64
+FFTW_INC = ${FFTW_ROT}/include
+
+FCFLAGS  = $(DFLAGS) \
+           -axAVX -msse2 \
+           -O2 \
+	   -fno-omit-frame-pointer \
+	   -heap-arrays 64 -funroll-loops \
+	   -fpp -free \
+	   -convert big_endian \
+	   -I$(MKL_ROOT)/include \
+	   -I$(FFTW_ROOT)/include \
+
+LDFLAGS  = $(FCFLAGS) -static-intel \
+           -L$(MKL_ROOT)/lib/intel64 \
+	   -L$(LIBINT_ROOT)/lib \
+	   -L$(LIBXC_ROOT)/lib \
+	   -L$(FFTW_ROOT)/lib
+
+LIBS      = -lmkl_rt \
+	    ${MKL_LIB}/libmkl_scalapack_lp64.a -Wl,--start-group \
+	    ${MKL_LIB}/libmkl_intel_lp64.a \
+	    ${MKL_LIB}/libmkl_sequential.a \
+	    ${MKL_LIB}/libmkl_blacs_intelmpi_lp64.a \
+	    ${MKL_LIB}/libmkl_core.a -Wl,--end-group \
+	    -lfftw3 \
+	    -liomp5 \
+	    -lderiv \
+	    -lpthread -lm \
+	    $(LIBINT_DIR)/lib/libderiv.a \
+	    $(LIBINT_DIR)/lib/libint.a -lstdc++ \
+	    -L$(LIBXC_DIR)/lib -lxc \
+	    -lr12 \
+
+OBJECTS_ARCHITECTURE = machine_intel.o

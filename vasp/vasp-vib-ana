@@ -1,0 +1,71 @@
+#!/bin/bash
+
+replicas="00 14"
+
+for i in $replicas; do
+    mkdir -p replica_$i
+    cd replica_$i
+
+    echo "SYSTEM  = Graphene-proton
+   PREC    = High
+   LPLANE  = .TRUE.
+   LSCALU  = .FALSE.
+   ISPIN   = 1
+   NELECT  = 144
+
+# Electronic Relaxation 
+   NELM    = 80
+   EDIFF   = 1E-08         
+   NELMIN  = 5
+   LREAL   = Auto 
+
+   NSW    = 500
+   IBRION =  5
+   NFREE  =  2
+   ISIF   =  2
+   ISYM   =  2
+   POTIM  = 0.01
+   EDIFFG = -0.0005
+
+   TEBEG = 800
+   TEND  = 800
+   SMASS =-3
+
+ Write flags
+   LWAVE   = .FALSE.
+   LCHARG  = .FALSE. 
+   NWRITE  = 1
+
+ DOS related values:
+   ISMEAR = 1 
+   SIGMA  = 0.05
+" > INCAR
+
+    echo "#!/bin/bash
+
+#PBS -N H+V-VIB-$i
+#PBS -r n
+#PBS -j oe
+#PBS -M abb58@pitt.edu
+#PBS -q ib
+#PBS -l walltime=32:00:00,nodes=3:ppn=8
+
+
+cd \$PBS_O_WORKDIR
+module purge
+module load vasp/5.3.3-intel12-openmpi
+
+rm -rf *~
+prun --bind-to-core vasp > VASP-VIB.out
+rm -rf CHG CHGCAR WAVECAR
+exit 0
+" > job.pbs
+    qsub job.pbs
+  
+    cp ../../POTCAR ./
+    cp ../../KPOINTS ./
+
+    cd ../
+done
+
+exit 0
