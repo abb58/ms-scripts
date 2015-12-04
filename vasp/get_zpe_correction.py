@@ -1,9 +1,11 @@
 #!/usr/bin/python
 
-# Performs zero point energy correction on the configuration 
-# that has already gone through the phase of vibrational frequency analysis calculation.
+# Performs zero point energy calculation on the configuration 
+# that has already gone through the phase of vibrational 
+# frequency analysis calculation.
 
-# OUTPUT : Plot of potential energy surface
+# INPUT : OUTCAR (from vib frequency calculation)
+# OUTPUT : textfile with ZPE contribution
 
 import numpy as np
 import os
