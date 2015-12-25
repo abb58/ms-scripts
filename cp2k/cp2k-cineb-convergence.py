@@ -23,9 +23,12 @@ stop=0
 start=0
 for i in range(len(list)-1,-1,-1):
     if 'BAND TOTAL ENERGY' in list[i]:
+        print(list[i])
         stop = i
     if 'ENERGIES' in list[i]:
+        print(list[i])
         start = i
+        break
 
 count = 0
 n_ener = 0
@@ -43,13 +46,15 @@ for i in range(start, stop):
             n_ener = n_ener + 1
             energy.append(float(fields[i]))
 
-energy = 27.211*(energy-np.min(energy))
-print('Energies for each image : {0}'.format(energy))
+energy = np.asarray(energy)
+print('Energies for each image [a.u.] : {0}'.format(energy))
+energy = 27.2114 * (energy - energy[0])
+print('Energies for each image [eV] : {0}'.format(energy))
 
 
 x1=range(n_ener)
 x1=np.asarray(x1)
-print(x1)
+
 # ---- Plot Information -----
 X = np.linspace(np.min(x1), np.max(x1), 50)
 Y = interp1d(x1,energy, kind='cubic')
