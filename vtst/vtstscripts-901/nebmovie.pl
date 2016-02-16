@@ -9,7 +9,7 @@ use lib "$Bin";
 use Vasp;
 
 $xdatflag = 0; # turn off xdatcar writing, by default
-$xyzflag = 0;  # turn off xyz writing, by default
+$xyzflag = 1;  # turn off xyz writing, by default
 
 if(!$ARGV[0]) {
     print "\nUsing POSCARs to generate movie\n\n";
